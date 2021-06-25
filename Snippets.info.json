@@ -5,6 +5,7 @@
     "summary": "Adds support for embedding snippets.",
     "icon": "scissors",
     "autoload": true,
+    "singular": true,
     "requires": "ProcessWire>=3.0.112, PHP>7.1",
     "installs": "ProcessSnippets"
 }

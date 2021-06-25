@@ -25,9 +25,12 @@ class Snippets extends WireData implements Module {
     protected $snippets = [];
 
     /**
-     * Initialize the module, add hooks
+     * Initialize the module, fetch dependencies, add hooks
      */
     public function init() {
+        if (!class_exists('SnippetsData')) {
+            require __DIR__ . '/SnippetsData.php';
+        }
         $this->addHookAfter('Page::render', $this, 'hookPageRender');
     }
 
@@ -45,10 +48,17 @@ class Snippets extends WireData implements Module {
         $snippets = $this->getSnippets();
         foreach ($snippets as $snippet) {
             if (!$this->isApplicable($snippet, $event->object)) return;
-            $event->return = $this->applySnippet($snippet, $event->return, $event->object, [
-                'tagOpen' => '{{',
-                'tagClose' => '}}', 
-            ]);
+            $event->return = $this->applySnippet(
+                $snippet,
+                $event->return,
+                new SnippetsData([
+                    'page' => $event->object,
+                ]),
+                [
+                    'tagOpen' => '{{',
+                    'tagClose' => '}}',
+                ]
+            );
         }
     }
 
@@ -86,14 +96,14 @@ class Snippets extends WireData implements Module {
      *
      * @param object $snippet
      * @param string $content
-     * @param Page $page
+     * @param object $vars
      * @param array $options
      * @return string
      */
-    public function ___applySnippet(object $snippet, string $content, Page $page, array $options = []): string {
+    public function ___applySnippet(object $snippet, string $content, object $vars, array $options = []): string {
         return preg_replace(
             $snippet->element == 'other' ? $snippet->element_regex : $snippet->element,
-            ($snippet->position == 'after' ? '$0' : '') . wirePopulateStringTags($snippet->snippet, $page, $options) . ($snippet->position == 'before' ? '$0' : ''),
+            ($snippet->position == 'after' ? '$0' : '') . wirePopulateStringTags($snippet->snippet, $vars, $options) . ($snippet->position == 'before' ? '$0' : ''),
             $content,
             1
         );

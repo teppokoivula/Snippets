@@ -17,18 +17,18 @@ class ProcessSnippets extends Process implements ConfigurableModule {
      */
     protected $snippets = [];
 
-	/**
-	 * Render items for admin ajax navigation
-	 *
+    /**
+     * Render items for admin ajax navigation
+     *
      * @param array $options
      * @return string rendered JSON string
-	 */
-	public function executeNavJSON(array $options = array()) {
-		$options['items'] = $this->getSnippets();
+     */
+    public function executeNavJSON(array $options = array()) {
+        $options['items'] = $this->getSnippets();
         $options['itemLabel'] = 'label';
-		$options['add'] = 'edit/';
-		return parent::___executeNavJSON($options); 
-	}
+        $options['add'] = 'edit/';
+        return parent::___executeNavJSON($options); 
+    }
 
     /**
      * Snippets dashboard; display a list of available snippets.
@@ -95,7 +95,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
      */
     public function executeEdit() {
 
-		$this->headline($this->_('Add new snippet'));
+        $this->headline($this->_('Add new snippet'));
         $snippet = new WireData();
 
         // attempt to fetch existing snippet
@@ -108,7 +108,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
                 if ($snippet === false) {
                     throw new Wire404Exception(sprintf($this->_("Snippet ID %d not recognized"), $snippet_id));
                 }
-		        $this->headline($this->_('Edit snippet'));
+                $this->headline($this->_('Edit snippet'));
             } else {
                 $this->session->message(sprintf($this->_("Error occurred while fetching snippet (%d)"), $snippet_id));
                 $this->session->redirect('../', false);
@@ -140,7 +140,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
                 'required' => true,
                 'label' => $this->_('Snippet'),
                 'description' => $this->_('This is the actual snippet that will be embedded into the markup of rendered page.'),
-                'notes' => $this->_('You can use values from current page by wrapping them with double curly brackets: `{{name}}`.'),
+                'notes' => $this->_('You can use values from current page by wrapping them with double curly brackets: `{{page.name}}`.'),
                 'value' => $snippet->snippet ?: '',
             ),
             'element' => array(
