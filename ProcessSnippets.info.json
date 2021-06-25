@@ -2,10 +2,7 @@
     "title": "Snippets Manager",
     "version": "1.0.0",
     "author": "Teppo Koivula",
-    "permissions": {
-        "snippets-view": "View snippets",
-        "snippets-edit": "Edit snippets"
-    },
+    "permission": "snippets",
     "page": {
         "name": "snippets",
         "parent": "setup",
