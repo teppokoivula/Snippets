@@ -1,0 +1,26 @@
+{
+    "name": "teppokoivula/snippets",
+    "type": "processwire-module",
+    "description": "ProcessWire CMS/CMF module for allows embedding HTML/JS/CSS snippets into page markup.",
+    "keywords": [
+        "module",
+        "processwire"
+    ],
+    "homepage": "https://github.com/teppokoivula/Snippets",
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Teppo Koivula",
+            "homepage": "https://github.com/teppokoivula",
+            "email": "teppo.koivula@gmail.com"
+        }
+    ],
+    "extra": {
+        "installer-name": "Snippets"
+    },
+    "require": {
+        "php": ">=7.1",
+        "processwire/processwire": ">=3.0.112",
+        "composer/installers": "~1.0"
+    }
+}
