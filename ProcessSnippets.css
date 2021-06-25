@@ -1,0 +1,79 @@
+.snippets table {
+    margin: 0;
+}
+
+.snippets table.disabled a {
+    text-decoration: line-through;
+}
+
+.snippets table td {
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+.snippet-toggle-container {
+    width: 25%;
+}
+
+.snippet-toggle {
+    display: none;
+}
+
+.snippet-toggle + label {
+    width: 100%;
+    height: 2em;
+    display: block;
+    cursor: pointer;
+    overflow: hidden;
+    background: #e83561;
+    position: relative;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.snippet-toggle:checked + label {
+    background: #3eb998;
+}
+
+.snippet-toggle + label:before {
+    width: 40%;
+    height: 2em;
+    display: block;
+    background: #fff;
+    background: -webkit-linear-gradient(top, #fff 0%, #F5F5F5 100%);
+    background: -moz-linear-gradient(top, #fff 0%, #F5F5F5 100%);
+    background: linear-gradient(to bottom, #fff 0%, #F5F5F5 100%);
+    position: absolute;
+    transition: left 0.2s ease-in-out;
+    box-shadow: 0 0 3px rgba(0,0,0,0.15);
+    content: "";
+    left: 0;
+    top: 0;
+}
+
+.snippet-toggle:checked + label:before {
+    left: 60%;
+}
+
+.snippet-toggle + label span {
+    width: 60%;
+    text-align: center;
+    line-height: 1.75em;
+    position: absolute;
+    color: #fff;
+    left: 40%;
+}
+
+.snippet-toggle:checked + label span {
+    left: 0;
+}
+
+.snippet-toggle + label span.enabled,
+.snippet-toggle:checked + label span.disabled {
+    display: none;
+}
+
+.snippet-toggle + label span.disabled,
+.snippet-toggle:checked + label span.enabled {
+    display: block;
+}

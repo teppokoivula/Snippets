@@ -1,0 +1,19 @@
+{
+    "title": "Snippets Manager",
+    "version": "1.0.0",
+    "author": "Teppo Koivula",
+    "permissions": {
+        "snippets-view": "View snippets",
+        "snippets-edit": "Edit snippets"
+    },
+    "page": {
+        "name": "snippets",
+        "parent": "setup",
+        "title": "Snippets"
+    },
+    "summary": "Centralized management for snippets.",
+    "icon": "scissors",
+    "useNavJSON": true,
+    "requires": "Snippets, ProcessWire>=2.5.5, PHP>7.1"
+}
+    
