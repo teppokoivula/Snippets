@@ -1,79 +1,84 @@
-.snippets table {
-    margin: 0;
+.snippets__link {
+    font-weight: bold;
 }
 
-.snippets table.disabled a {
+.snippets__link--disabled {
     text-decoration: line-through;
 }
 
-.snippets table td {
-    border: 0 !important;
-    padding: 0 !important;
+.snippets__summary {
+    margin: .5rem 0;
+    opacity: .75;
 }
 
-.snippet-toggle-container {
+.snippets__toggle-container {
     width: 25%;
 }
 
-.snippet-toggle {
+.snippets__toggle {
     display: none;
 }
 
-.snippet-toggle + label {
+.snippets__toggle + label {
     width: 100%;
-    height: 2em;
+    height: 2rem;
     display: block;
     cursor: pointer;
     overflow: hidden;
     background: #e83561;
     position: relative;
-    border-radius: 3px;
+    border-radius: .25rem;
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.snippet-toggle:checked + label {
+.snippets__toggle:checked + label {
     background: #3eb998;
 }
 
-.snippet-toggle + label:before {
-    width: 40%;
-    height: 2em;
+.snippets__toggle + label:before {
+    width: 35%;
+    height: 2rem;
     display: block;
     background: #fff;
-    background: -webkit-linear-gradient(top, #fff 0%, #F5F5F5 100%);
-    background: -moz-linear-gradient(top, #fff 0%, #F5F5F5 100%);
-    background: linear-gradient(to bottom, #fff 0%, #F5F5F5 100%);
+    background: -webkit-linear-gradient(top, #fff 0%, #f2f2f2 100%);
+    background: -moz-linear-gradient(top, #fff 0%, #f2f2f2 100%);
+    background: linear-gradient(to bottom, #fff 0%, #f2f2f2 100%);
     position: absolute;
     transition: left 0.2s ease-in-out;
-    box-shadow: 0 0 3px rgba(0,0,0,0.15);
-    content: "";
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, .75);
+    content: "|||";
+    text-align: center;
+    font-size: .875rem;
+    line-height: 2.1;
+    color: #ddd;
     left: 0;
     top: 0;
 }
 
-.snippet-toggle:checked + label:before {
-    left: 60%;
+.snippets__toggle:checked + label:before {
+    left: 65%;
 }
 
-.snippet-toggle + label span {
-    width: 60%;
+.snippets__toggle + label span {
+    width: 65%;
     text-align: center;
-    line-height: 1.75em;
+    line-height: 1.75;
     position: absolute;
     color: #fff;
-    left: 40%;
+    left: 35%;
 }
 
-.snippet-toggle:checked + label span {
+.snippets__toggle:checked + label span {
     left: 0;
 }
 
-.snippet-toggle + label span.enabled,
-.snippet-toggle:checked + label span.disabled {
+.snippets__toggle + label span.enabled,
+.snippets__toggle:checked + label span.disabled {
     display: none;
 }
 
-.snippet-toggle + label span.disabled,
-.snippet-toggle:checked + label span.enabled {
+.snippets__toggle + label span.disabled,
+.snippets__toggle:checked + label span.enabled {
     display: block;
 }

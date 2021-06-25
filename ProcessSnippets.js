@@ -1,19 +1,7 @@
 $(function() {
 
-    // translations etc. are defined in process module
+    // get config settings from Process module
     var moduleConfig = config.ProcessSnippets;
-
-    // init WireTabs
-    if ($('.WireTab').length) {
-        $('.WireTab').each(function() {
-            $(this).parent('.Inputfields').addClass('WireTabsParent');
-        });
-        $('.WireTabsParent').each(function() {
-            $(this).WireTabs({
-                items: $(this).find('.WireTab')
-            });
-        });
-    }
 
     // init CodeMirror
     if ($('#textarea-snippet[data-codemirror=1]').length) {
@@ -29,22 +17,18 @@ $(function() {
     }
 
     // enable or disable snippets
-    $('.snippets').on('click', '.snippet-toggle', function() {
-        var id = $(this).attr('value');
-        var enabled = $(this).is(':checked') ? 1 : 0;
+    $('.snippets').on('click', '.snippets__toggle', function() {
         var $label = $(this).next('label');
-        var $tr = $(this).parents('tr:first')
-        var $table = $tr.find('table:first');
+        var $link = $(this).parents('tr:first').find('.snippets__link');
         $label.find('span').hide();
-        $.post(moduleConfig.processPage+'toggle', { id: id, enabled: enabled }, function(data) {
-            $tr.effect("highlight", {}, 500);
+        $.post(moduleConfig.processPage + 'toggle', { id: $(this).attr('value'), enabled: $(this).is(':checked') ? 1 : 0 }, function(data) {
             if (data) {
                 $label.find('span.enabled').fadeIn('fast');
-                $table.removeClass('disabled').addClass('enabled');
-            } else {
-                $label.find('span.disabled').fadeIn('fast');
-                $table.removeClass('enabed').addClass('disabled');
+                $link.removeClass('snippets__link--disabled').addClass('snippets__link--enabled');
+                return;
             }
+            $label.find('span.disabled').fadeIn('fast');
+            $link.removeClass('snippets__link--enabed').addClass('snippets__link--disabled');
         });
     });
 

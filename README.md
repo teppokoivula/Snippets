@@ -6,7 +6,7 @@ This module can be used to inject simple (HTML/JS/CSS) snippets into rendered pa
 ## Requirements
 
 - ProcessWire 3.0.112+
-- PHP 7.x
+- PHP 7.1+
 
 ## Installing
 

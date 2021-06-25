@@ -40,31 +40,33 @@ class ProcessSnippets extends Process implements ConfigurableModule {
         $out = "";
 
         // inject settings, translations etc.
-        $this->config->js($this->className(), array(
+        $this->config->js($this->className(), [
             'processPage' => $this->page->url,
-        ));
+        ]);
 
         // fetch snippets from database
-        if (count($this->getSnippets())) {
+        if (!empty($this->getSnippets())) {
             $table = $this->modules->get('MarkupAdminDataTable');
             $table->setEncodeEntities(false);
             $table->addClass('snippets');
-            $table->headerRow(array(
-                $this->_("Details"),
+            $table->headerRow([
+                $this->_("Snippet"),
                 $this->_("Created"),
                 $this->_("Status"),
-            ));
+            ]);
             $label_enabled = $this->_('Enabled');
             $label_disabled = $this->_('Disabled');
             foreach ($this->snippets as $snippet) {
                 $table->row([
-                    "<table class='" . ($snippet->enabled ? "enabled" : "disabled") . "'>" .
-                    "<td><div class='snippet-details'><strong><a href='./edit/?id={$snippet->id}'>" . htmlentities($snippet->label) . "</a></strong><br />{$snippet->summary}</div></td>" .
-                    "</table>",
+                    '<div class="snippets__item">'
+                    . '<a href="./edit/?id=' . $snippet->id . '" class="snippets__link snippets__link--' . ($snippet->enabled ? 'enabled' : 'disabled') . '"">' . htmlentities($snippet->label) . '</a>'
+                    . ($snippet->summary ? '<p class="snippets__summary">' . $snippet->summary . '</p>' : '')
+                    . '</div>',
                     $snippet->created,
                     [
-                        "<input type='checkbox' class='snippet-toggle' id='snippet-toggle-{$snippet->id}' value='{$snippet->id}'" . ($snippet->enabled ? " checked" : "") . " /><label for='snippet-toggle-{$snippet->id}'><span class='enabled'>{$label_enabled}</span><span class='disabled'>{$label_disabled}</span></label>",
-                        'snippet-toggle-container',
+                        '<input type="checkbox" class="snippets__toggle" id="snippet-toggle-' . $snippet->id . '" value="' . $snippet->id . '"' . ($snippet->enabled ? ' checked' : '') . '>'
+                        . '<label for="snippet-toggle-' . $snippet->id . '"><span class="enabled">' . $label_enabled . '</span><span class="disabled">' . $label_disabled . '</span></label>',
+                        'snippets__toggle-container',
                     ],
                 ]);
             }
@@ -81,9 +83,9 @@ class ProcessSnippets extends Process implements ConfigurableModule {
         }
         $button->icon = 'plus-circle';
         $button->addClass('head_button_clone');
-        $out .= "<a href='./edit/'>" . $button->render() . "</a>";
+        $out .= '<a href="./edit/">' . $button->render() . '</a>';
 
-        return "<form class='InputfieldForm'>{$out}</form>";
+        return '<form class="InputfieldForm">' . $out . '</form>';
     }
 
     /**
