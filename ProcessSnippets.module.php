@@ -279,7 +279,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
                 foreach ($keys as $key) {
                     $value = $key == "enabled" ? ($this->input->post->{$key} ? 1 : 0) : $this->input->post->{$key};
                     if (is_array($value)) $value = implode(",", $value);
-                    if ($snippet->{$key} != $value) $changes[] = $key;
+                    if ($snippet->{$key} != $value || !$snippet->id && $key == "enabled") $changes[] = $key;
                     $snippet->{$key} = $value;
                 }
                 if (count($changes)) {
@@ -312,7 +312,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
                         'enabled',
                     );
                     foreach ($keys as $key) {
-                        $value = $snippet->{$key} ?: null;
+                        $value = $snippet->{$key} ?: ($key == "enabled" ? 0 : null);
                         if (is_array($value)) $value = implode(",", $value);
                         $stmt->bindValue(":{$key}", $value, in_array($key, $int_keys) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
                     }

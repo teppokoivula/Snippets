@@ -1,6 +1,6 @@
 {
     "title": "Snippets",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Teppo Koivula",
     "summary": "Adds support for embedding snippets.",
     "icon": "scissors",
