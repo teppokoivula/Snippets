@@ -82,10 +82,10 @@ class Snippets extends WireData implements Module {
                 $applicable = $page->is('template!=admin');
                 break;
             case 'page_list':
-                $applicable = $snippet->apply_to_page_list->has($page);
+                $applicable = $snippet->apply_to_page_list && $page->is('id=' . $snippet->apply_to_page_list);
                 break;
             case 'selector':
-                $applicable = $page->is($snippet->apply_to_selector);
+                $applicable = $snippet->apply_to_selector && $page->is($snippet->apply_to_selector);
                 break;
         }
         return $applicable;
@@ -184,6 +184,14 @@ class Snippets extends WireData implements Module {
         if (empty($this->snippets)) {
             $query = $this->database->query("SELECT apply_to, apply_to_page_list, apply_to_selector, element, element_regex, snippet, position FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1");
             while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
+                if ($snippet->apply_to_page_list) {
+                    // apply basic validation to the apply to page list property
+                    $apply_to_page_list = explode('|', $snippet->apply_to_page_list);
+                    $apply_to_page_list = array_filter($apply_to_page_list, function($page_id) {
+                        return $page_id > 0 && (int) $page_id == $page_id;
+                    });
+                    $snippet->apply_to_page_list = implode('|', $apply_to_page_list);
+                }
                 $this->snippets[] = $snippet;
             }
         }
