@@ -186,7 +186,7 @@ class Snippets extends WireData implements Module {
             while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
                 if ($snippet->apply_to_page_list) {
                     // apply basic validation to the apply to page list property
-                    $apply_to_page_list = explode('|', $snippet->apply_to_page_list);
+                    $apply_to_page_list = explode(',', $snippet->apply_to_page_list);
                     $apply_to_page_list = array_filter($apply_to_page_list, function($page_id) {
                         return $page_id > 0 && (int) $page_id == $page_id;
                     });
