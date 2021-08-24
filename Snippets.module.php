@@ -127,7 +127,7 @@ class Snippets extends WireData implements Module {
             'enabled BOOLEAN NOT NULL DEFAULT 0',
             'created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP',
             'created_users_id INT UNSIGNED',
-            'modified TIMESTAMP',
+            'modified TIMESTAMP NULL',
             'modified_users_id INT UNSIGNED',
         ));
     }
