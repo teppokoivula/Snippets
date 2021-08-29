@@ -47,7 +47,7 @@ class Snippets extends WireData implements Module {
         // find snippets and process them one by one
         $snippets = $this->getSnippets();
         foreach ($snippets as $snippet) {
-            if (!$this->isApplicable($snippet, $event->object)) return;
+            if (!$this->isApplicable($snippet, $event->object)) continue;
             $event->return = $this->applySnippet(
                 $snippet,
                 $event->return,
