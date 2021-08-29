@@ -82,3 +82,17 @@
 .snippets__toggle:checked + label span.enabled {
     display: block;
 }
+
+.snippets__sort {
+    display: inline-block;
+    padding-right: 1em;
+    cursor: grab;
+}
+
+.snippets__item--sort {
+    opacity: .5;
+}
+
+.snippets .ui-sortable-helper {
+    display: table;
+}

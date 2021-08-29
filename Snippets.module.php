@@ -6,9 +6,9 @@
  * This module allows embedding snippets into page markup.
  *
  * @copyright 2021 Teppo Koivula
- * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
+ * @license https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt GNU General Public License, version 2
  */
-class Snippets extends WireData implements Module {
+class Snippets extends WireData implements Module, ConfigurableModule {
 
     /**
      * Name of the database table used by this module
@@ -18,6 +18,13 @@ class Snippets extends WireData implements Module {
     const TABLE_SNIPPETS = 'snippets';
 
     /**
+     * Schema version for database table used by this module
+     *
+     * @var int
+     */
+    const SCHEMA_VERSION = 2;
+
+    /**
      * List of all snippets
      *
      * @var array
@@ -25,11 +32,41 @@ class Snippets extends WireData implements Module {
     protected $snippets = [];
 
     /**
-     * Initialize the module, fetch dependencies, add hooks
+     * Default configuration for this module
+     *
+     * @return array
+     */
+    protected function getDefaultData(): array {
+        return [
+            'schema_version' => 1,
+        ];
+    }
+
+    /**
+     * Populate the default config data
+     */
+    public function __construct() {
+        foreach ($this->getDefaultData() as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+    /**
+     * Get module config inputfields
+     *
+     * @param InputfieldWrapper $inputfields
+     */
+    public function getModuleConfigInputfields(InputfieldWrapper $inputfields) {}
+
+    /**
+     * Initialize the module
      */
     public function init() {
         if (!class_exists('SnippetsData')) {
             require __DIR__ . '/SnippetsData.php';
+        }
+        if ($this->schema_version < self::SCHEMA_VERSION) {
+            $this->updateDatabaseSchema();
         }
         $this->addHookAfter('Page::render', $this, 'hookPageRender');
     }
@@ -182,7 +219,7 @@ class Snippets extends WireData implements Module {
      */
     public function getSnippets(): array {
         if (empty($this->snippets)) {
-            $query = $this->database->query("SELECT apply_to, apply_to_page_list, apply_to_selector, element, element_regex, snippet, position FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1");
+            $query = $this->database->query("SELECT apply_to, apply_to_page_list, apply_to_selector, element, element_regex, snippet, position, sort FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1 ORDER BY sort, id");
             while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
                 if ($snippet->apply_to_page_list) {
                     // apply basic validation to the apply to page list property
@@ -196,6 +233,89 @@ class Snippets extends WireData implements Module {
             }
         }
         return $this->snippets;
+    }
+
+    /**
+     * Update database schema
+     *
+     * This method applies incremental updates until latest schema version is reached, while also keeping schema_version
+     * config setting up to date.
+     *
+     * @throws WireException if database schema version isn't recognized
+     */
+    protected function updateDatabaseSchema() {
+        while ($this->schema_version < self::SCHEMA_VERSION) {
+
+            // increment; defaults to 1, but in some cases we may be able to skip over a specific schema update
+            $increment = 1;
+
+            // first we need to figure out which update we're going to trigger
+            switch ($this->schema_version) {
+                case 1:
+                    // update #1: add sort column
+                    $sql = [
+                        "ALTER TABLE `" . self::TABLE_SNIPPETS . "` ADD `sort` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `modified_users_id`",
+                    ];
+                    break;
+                default:
+                    throw new WireException("Unrecognized database schema version: {$this->schema_version}");
+            }
+
+            // we're ready to execute this update
+            foreach ($sql as $sql_query) {
+                $schema_updated = $this->executeDatabaseSchemaUpdate($sql_query);
+                if (!$schema_updated) {
+                    break;
+                }
+            }
+
+            // if update fails: log, show error message (if current user is superuser) and continue
+            if (!$schema_updated) {
+                $this->error(sprintf(
+                    $this->_("Running database schema update %d failed"),
+                    $this->schema_version
+                ), $this->user->isSuperuser() ? Notice::log : Notice::logOnly);
+                return;
+            }
+
+            // after successful update increment schema version and display a message if current user is superuser
+            $this->schema_version += $increment;
+            $configData = $this->modules->getModuleConfigData($this);
+            $configData['schema_version'] = $this->schema_version;
+            $this->modules->saveModuleConfigData($this, $configData);
+            if ($this->user->isSuperuser()) {
+                $this->message(sprintf(
+                    $this->_('Snippets database schema update applied (#%d).'),
+                    $this->schema_version - 1
+                ));
+            }
+        }
+    }
+
+    /**
+     * Execute database schema update
+     *
+     * @param string $sql
+     * @return bool
+     */
+    protected function executeDatabaseSchemaUpdate($sql): bool {
+        try {
+            $updated_rows = $this->database->exec($sql);
+            return $updated_rows !== false;
+        } catch (\PDOException $e) {
+            if (isset($e->errorInfo[1]) && in_array($e->errorInfo[1], [1060, 1061, 1091])) {
+                // 1060 (column already exists), 1061 (duplicate key name), and 1091 (can't drop index) are errors that
+                // can be safely ignored here; the most likely issue would be that this update has already been applied
+                return true;
+            }
+            // another type of error; log, show error message (if current user is superuser) and return false
+            $this->error(sprintf(
+                'Error updating database schema: %s (%s)',
+                $e->getMessage(),
+                $e->getCode()
+            ), $this->user->isSuperuser() ? Notice::log : Notice::logOnly);
+            return false;
+        }
     }
 
 }

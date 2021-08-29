@@ -6,7 +6,7 @@
  * This module provides centralized management for snippets.
  *
  * @copyright 2021 Teppo Koivula
- * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
+ * @license https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt GNU General Public License, version 2
  */
 class ProcessSnippets extends Process implements ConfigurableModule {
 
@@ -24,8 +24,13 @@ class ProcessSnippets extends Process implements ConfigurableModule {
      * @return string rendered JSON string
      */
     public function executeNavJSON(array $options = array()) {
-        $options['items'] = $this->getSnippets();
-        $options['itemLabel'] = 'label';
+        $options['items'] = array_map(function($item) {
+            $item->name = $item->label;
+            $item->icon = null;
+            $item->_class = null;
+            $item->_labelClass = null;
+            return $item;
+        }, $this->getSnippets());
         $options['add'] = 'edit/';
         return parent::___executeNavJSON($options); 
     }
@@ -58,7 +63,8 @@ class ProcessSnippets extends Process implements ConfigurableModule {
             $label_disabled = $this->_('Disabled');
             foreach ($this->snippets as $snippet) {
                 $table->row([
-                    '<div class="snippets__item">'
+                    '<div class="snippets__item" data-id="' . (int) $snippet->id . '">'
+                    . '<i class="fa fa-sort snippets__sort"></i>'
                     . '<a href="./edit/?id=' . $snippet->id . '" class="snippets__link snippets__link--' . ($snippet->enabled ? 'enabled' : 'disabled') . '"">' . htmlentities($snippet->label) . '</a>'
                     . ($snippet->summary ? '<p class="snippets__summary">' . $snippet->summary . '</p>' : '')
                     . '</div>',
@@ -84,6 +90,9 @@ class ProcessSnippets extends Process implements ConfigurableModule {
         $button->icon = 'plus-circle';
         $button->addClass('head_button_clone');
         $out .= '<a href="./edit/">' . $button->render() . '</a>';
+
+        // CSRF input
+        $out .= $this->session->CSRF->renderInput();
 
         return '<form class="InputfieldForm">' . $out . '</form>';
     }
@@ -340,8 +349,13 @@ class ProcessSnippets extends Process implements ConfigurableModule {
      */
     public function executeToggle() {
 
-        // this only applies to POST requests
-        if ($_SERVER['REQUEST_METHOD'] !== "POST") return;
+        // this only applies to AJAX+POST requests
+        if (!$this->config->ajax || $_SERVER['REQUEST_METHOD'] !== "POST") {
+            return;
+        }
+
+        // check CSRF token
+        $this->session->CSRF->validate();
 
         // get and check snippet
         $snippet = null;
@@ -371,16 +385,62 @@ class ProcessSnippets extends Process implements ConfigurableModule {
     }
 
     /**
+     * Sort snippets
+     *
+     * @return string Summary of sort operation
+     *
+     * @throws WireException if provided sort value is invalid
+     */
+    public function executeSort() {
+
+        // this only applies to AJAX+POST requests
+        if (!$this->config->ajax || $_SERVER['REQUEST_METHOD'] !== "POST") {
+            return;
+        }
+
+        // check CSRF token
+        $this->session->CSRF->validate();
+
+        // get and sanitize snippet IDs
+        $ids = $this->sanitizer->intArray($this->input->post->sort);
+        if (empty($ids) || $ids != $this->input->post->sort) {
+           throw new WireException($this->_('Invalid sort value provided'));
+        }
+
+        // update snippet sort values
+        $sort = 0;
+        $stmt = $this->database->prepare("UPDATE " . Snippets::TABLE_SNIPPETS . " SET sort = :sort WHERE id = :id LIMIT 1");
+        foreach ($ids as $id) {
+            $stmt->bindValue(':sort', $sort);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
+            ++$sort;
+        }
+
+        return json_encode([
+            'error' => false,
+            'message' => sprintf(
+                $this->_('Updated sort for %d snippets'),
+                $sort
+            ),
+        ]);
+    }
+
+    /**
      * Fetch all snippets from database
      *
      * @return array
      */
     protected function getSnippets(): array {
         if (empty($this->snippets)) {
-            $query = $this->database->query("SELECT s.id, s.label, s.summary, s.enabled, s.created, u1.name AS 'created_user', s.modified, u2.name AS 'modified_user' FROM " . Snippets::TABLE_SNIPPETS . " s LEFT JOIN pages u1 ON u1.templates_id = 3 AND u1.id = s.created_users_id LEFT JOIN pages u2 ON u2.templates_id = 3 AND u2.id = s.modified_users_id ORDER BY id ASC");
-            while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
-                $this->snippets[] = $snippet;
-            }
+            $query = $this->database->query("
+                SELECT s.id, s.label, s.summary, s.enabled, s.created, u1.name AS created_user, s.modified, u2.name AS modified_user
+                FROM " . Snippets::TABLE_SNIPPETS . " s
+                LEFT JOIN pages u1 ON u1.templates_id = 3 AND u1.id = s.created_users_id
+                LEFT JOIN pages u2 ON u2.templates_id = 3 AND u2.id = s.modified_users_id
+                ORDER BY s.sort, id ASC
+            ");
+            $this->snippets = $query->fetchAll(\PDO::FETCH_OBJ);
         }
         return $this->snippets;
     }
