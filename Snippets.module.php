@@ -175,7 +175,7 @@ class Snippets extends WireData implements Module, ConfigurableModule {
     public function uninstall() {
         $this->dropTable(self::TABLE_SNIPPETS);
     }
-    
+
     /**
      * Helper method for dropping tables
      *
