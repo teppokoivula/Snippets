@@ -1,6 +1,6 @@
 {
     "title": "Snippets Manager",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "author": "Teppo Koivula",
     "permission": "snippets",
     "page": {
@@ -13,4 +13,4 @@
     "useNavJSON": true,
     "requires": "Snippets, ProcessWire>=3.0.112, PHP>7.1"
 }
-    
+
