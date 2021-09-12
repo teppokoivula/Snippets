@@ -52,13 +52,6 @@ class Snippets extends WireData implements Module, ConfigurableModule {
     }
 
     /**
-     * Get module config inputfields
-     *
-     * @param InputfieldWrapper $inputfields
-     */
-    public function getModuleConfigInputfields(InputfieldWrapper $inputfields) {}
-
-    /**
      * Initialize the module
      */
     public function init() {
@@ -138,9 +131,17 @@ class Snippets extends WireData implements Module, ConfigurableModule {
      * @return string
      */
     public function ___applySnippet(object $snippet, string $content, object $vars, array $options = []): string {
+        $the_snippet = wirePopulateStringTags($snippet->snippet, $vars, $options);
+        if ($this->enable_hanna_code && $this->modules->isInstalled('TextformatterHannaCode')) {
+            /**
+             * @var TextformatterHannaCode
+             */
+            $thc = $this->modules->get('TextformatterHannaCode');
+            $thc->formatValue($vars['page'] ?? $this->page ?? new Page, new Field, $the_snippet);
+        }
         return preg_replace(
             $snippet->element == 'other' ? $snippet->element_regex : $snippet->element,
-            ($snippet->position == 'after' ? '$0' : '') . wirePopulateStringTags($snippet->snippet, $vars, $options) . ($snippet->position == 'before' ? '$0' : ''),
+            ($snippet->position == 'after' ? '$0' : '') . $the_snippet . ($snippet->position == 'before' ? '$0' : ''),
             $content,
             1
         );
