@@ -5,7 +5,7 @@
  *
  * This is a wrapper class for WireData with some additions/modifications.
  *
- * @version 0.2.0
+ * @version 0.2.1
  * @copyright 2021 Teppo Koivula
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  */
@@ -110,16 +110,21 @@ class SnippetsData extends WireData {
 	 * @return mixed
 	 */
 	protected function getItemDotProp(Wire $item, ?string $prop) {
-		if ($prop === null) {
-			return null;
-		}
+
+		// bail out early if prop is null
+		if ($prop === null) return null;
+
+		// get data from item
+		$data = null;
 		if (strpos($prop, '.') === false) {
-			return $item->get($prop);
+			$data = $item->get($prop);
+		} else if ($item instanceof WireData) {
+			$data = $item->getDot($prop);
+		} else {
+			$data = self::_getDot($prop, $item);
 		}
-		if ($item instanceof WireData) {
-			return $item->getDot($prop);
-		}
-		return self::_getDot($prop, $item);
+
+		return $data;
 	}
 
 }
