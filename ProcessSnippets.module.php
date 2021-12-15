@@ -163,7 +163,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 				'type' => 'radios',
 				'required' => true,
 				'label' => $this->_('Element'),
-				'columnWidth' => 33,
+				'columnWidth' => 25,
 				'options' => array(
 					'/\<head.*?\>/i' => '<head>',
 					'/\<\/head\>/i' => '</head>',
@@ -178,7 +178,7 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 				'required' => true,
 				'label' => $this->_('Position'),
 				'description' => $this->_('Position compared to the element. Snippet can be placed before or after the element, or it can replace the original element entirely.'),
-				'columnWidth' => 33,
+				'columnWidth' => 25,
 				'options' => array(
 					'before' => $this->_('Before'),
 					'after' => $this->_('After'),
@@ -186,11 +186,11 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 				),
 				'value' => $snippet->position ?: 'before',
 			),
-			'apply_to' => array(
+			'apply_to_pages' => array(
 				'type' => 'radios',
 				'required' => true,
-				'label' => $this->_('Apply to'),
-				'columnWidth' => 33,
+				'label' => $this->_('Apply to pages'),
+				'columnWidth' => 25,
 				'options' => array(
 					'all' => $this->_('All pages'),
 					'admin' => $this->_('All admin pages'),
@@ -198,7 +198,20 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 					'page_list' => $this->_('Pages selected from a list'),
 					'selector' => $this->_('Pages matching a selector'),
 				),
-				'value' => $snippet->apply_to ?: 'non_admin',
+				'value' => $snippet->apply_to_pages ?: 'non_admin',
+			),
+			'apply_to_users' => array(
+				'type' => 'radios',
+				'required' => true,
+				'label' => $this->_('Apply to users'),
+				'description' => $this->_('Choose which users this snippet should be rendered for.'),
+				'columnWidth' => 25,
+				'options' => array(
+					'all' => $this->_('All users'),
+					'logged_in' => $this->_('All logged in users'),
+					'non_logged_in' => $this->_('All non-logged in users'),
+				),
+				'value' => $snippet->apply_to_users ?: 'all',
 			),
 			'element_regex' => array(
 				'type' => 'text',
@@ -210,20 +223,20 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 				'pattern' => '(^[^\w\s\\\]|_).*\1([imsxADSUXJu]*)$',
 				'value' => $snippet->element_regex ?: '/\<\/head\>/i',
 			),
-			'apply_to_page_list' => array(
-				'id' => 'apply_to_page_list',
+			'apply_to_pages_list' => array(
+				'id' => 'apply_to_pages_list',
 				'type' => 'PageListSelectMultiple',
 				'label' => $this->_('Select pages'),
-				'showIf' => 'apply_to=page_list',
+				'showIf' => 'apply_to_pages=page_list',
 				'description' => $this->_('Select applicable pages'),
-				'value' => $snippet->apply_to_page_list ?: '',
+				'value' => $snippet->apply_to_pages_list ?: '',
 			),
-			'apply_to_selector' => array(
+			'apply_to_pages_selector' => array(
 				'type' => 'selector',
 				'label' => $this->_('Selector'),
-				'showIf' => 'apply_to=selector',
+				'showIf' => 'apply_to_pages=selector',
 				'description' => $this->_('Selector for matching pages'),
-				'value' => $snippet->apply_to_selector ?: '',
+				'value' => $snippet->apply_to_pages_selector ?: '',
 			),
 			'enabled' => array(
 				'type' => 'checkbox',

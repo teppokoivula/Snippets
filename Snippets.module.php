@@ -22,7 +22,7 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 	 *
 	 * @var int
 	 */
-	const SCHEMA_VERSION = 2;
+	const SCHEMA_VERSION = 3;
 
 	/**
 	 * List of all snippets
@@ -100,25 +100,38 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 	 * @return bool
 	 */
 	public function ___isApplicable(object $snippet, Page $page): bool {
-		$applicable = false;
-		switch ($snippet->apply_to) {
+		$applicable = null;
+		switch ($snippet->apply_to_users) {
 			case 'all':
 				$applicable = true;
 				break;
-			case 'admin':
-				$applicable = $page->is('template=admin');
+			case 'logged_in':
+				$applicable = $this->user && $this->user->isLoggedin();
 				break;
-			case 'non_admin':
-				$applicable = $page->is('template!=admin');
-				break;
-			case 'page_list':
-				$applicable = $snippet->apply_to_page_list && $page->is('id=' . $snippet->apply_to_page_list);
-				break;
-			case 'selector':
-				$applicable = $snippet->apply_to_selector && $page->is($snippet->apply_to_selector);
+			case 'non_logged_in':
+				$applicable = !$this->user || !$this->user->isLoggedin();
 				break;
 		}
-		return $applicable;
+		if ($applicable !== false) {
+			switch ($snippet->apply_to_pages) {
+				case 'all':
+					$applicable = true;
+					break;
+				case 'admin':
+					$applicable = $page->is('template=admin');
+					break;
+				case 'non_admin':
+					$applicable = $page->is('template!=admin');
+					break;
+				case 'page_list':
+					$applicable = $snippet->apply_to_pages_list && $page->is('id=' . $snippet->apply_to_pages_list);
+					break;
+				case 'selector':
+					$applicable = $snippet->apply_to_pages_selector && $page->is($snippet->apply_to_pages_selector);
+					break;
+			}
+		}
+		return $applicable ?? false;
 	}
 
 	/**
@@ -220,15 +233,15 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 	 */
 	public function getSnippets(): array {
 		if (empty($this->snippets)) {
-			$query = $this->database->query("SELECT apply_to, apply_to_page_list, apply_to_selector, element, element_regex, snippet, position, sort FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1 ORDER BY sort, id");
+			$query = $this->database->query("SELECT apply_to_users, apply_to_pages, apply_to_pages_list, apply_to_pages_selector, element, element_regex, snippet, position, sort FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1 ORDER BY sort, id");
 			while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
-				if ($snippet->apply_to_page_list) {
-					// apply basic validation to the apply to page list property
-					$apply_to_page_list = explode(',', $snippet->apply_to_page_list);
-					$apply_to_page_list = array_filter($apply_to_page_list, function($page_id) {
+				if ($snippet->apply_to_pages_list) {
+					// apply basic validation to the apply to pages list property
+					$apply_to_pages_list = explode(',', $snippet->apply_to_pages_list);
+					$apply_to_pages_list = array_filter($apply_to_pages_list, function($page_id) {
 						return $page_id > 0 && (int) $page_id == $page_id;
 					});
-					$snippet->apply_to_page_list = implode('|', $apply_to_page_list);
+					$snippet->apply_to_pages_list = implode('|', $apply_to_pages_list);
 				}
 				$this->snippets[] = $snippet;
 			}
@@ -256,6 +269,15 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 					// update #1: add sort column
 					$sql = [
 						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` ADD `sort` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `modified_users_id`",
+					];
+					break;
+				case 2:
+					// update #2: add apply_to_users column, rename page related columns, require non-null value for apply_to_pages
+					$sql = [
+						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` CHANGE `apply_to` `apply_to_pages` VARCHAR(128) NOT NULL",
+						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` CHANGE `apply_to_selector` `apply_to_pages_selector` TEXT",
+						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` CHANGE `apply_to_page_list` `apply_to_pages_list` TEXT",
+						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` ADD `apply_to_users` VARCHAR(128) NOT NULL AFTER `apply_to_pages_list`",
 					];
 					break;
 				default:
