@@ -204,12 +204,13 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 				'type' => 'radios',
 				'required' => true,
 				'label' => $this->_('Apply to users'),
-				'description' => $this->_('Choose which users this snippet should be rendered for.'),
+				'notes' => $this->_('**Warning!** If pages are cached for authenticated users, "All users" is the only option that should be used. Anything else may end up displaying content for users it was not intended for!'),
 				'columnWidth' => 25,
 				'options' => array(
 					'all' => $this->_('All users'),
 					'logged_in' => $this->_('All logged in users'),
 					'non_logged_in' => $this->_('All non-logged in users'),
+					'selector' => $this->_('Users matching a selector'),
 				),
 				'value' => $snippet->apply_to_users ?: 'all',
 			),
@@ -233,10 +234,26 @@ class ProcessSnippets extends Process implements ConfigurableModule {
 			),
 			'apply_to_pages_selector' => array(
 				'type' => 'selector',
-				'label' => $this->_('Selector'),
+				'label' => $this->_('Pages selector'),
 				'showIf' => 'apply_to_pages=selector',
 				'description' => $this->_('Selector for matching pages'),
 				'value' => $snippet->apply_to_pages_selector ?: '',
+			),
+			'apply_to_users_selector' => array(
+				'type' => 'selector',
+				'label' => $this->_('Users selector'),
+				'showIf' => 'apply_to_users=selector',
+				'description' => $this->_('Selector for matching users'),
+				'value' => $snippet->apply_to_users_selector ?: '',
+				'allowSystemCustomFields' => true, // for roles
+				'counter' => $this->user->isSuperuser(), // count is 0 for non-superusers
+				'limitFields' => array_unique(array_merge(...array_map(
+					function($f) {
+						return $f->explode('name');
+					},
+					$this->templates->find('id=' . implode('|', $this->config->userTemplateIDs))->explode('fields')
+				))),
+				'initValue' => 'template=' . implode('|', $this->config->userTemplateIDs),
 			),
 			'enabled' => array(
 				'type' => 'checkbox',

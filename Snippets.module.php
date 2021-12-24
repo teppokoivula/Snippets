@@ -22,7 +22,7 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 	 *
 	 * @var int
 	 */
-	const SCHEMA_VERSION = 3;
+	const SCHEMA_VERSION = 4;
 
 	/**
 	 * List of all snippets
@@ -110,6 +110,9 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 				break;
 			case 'non_logged_in':
 				$applicable = !$this->user || !$this->user->isLoggedin();
+				break;
+			case 'selector':
+				$applicable = $snippet->apply_to_users_selector && $this->user->is($snippet->apply_to_users_selector);
 				break;
 		}
 		if ($applicable !== false) {
@@ -233,7 +236,7 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 	 */
 	public function getSnippets(): array {
 		if (empty($this->snippets)) {
-			$query = $this->database->query("SELECT apply_to_users, apply_to_pages, apply_to_pages_list, apply_to_pages_selector, element, element_regex, snippet, position, sort FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1 ORDER BY sort, id");
+			$query = $this->database->query("SELECT apply_to_users, apply_to_users_selector, apply_to_pages, apply_to_pages_list, apply_to_pages_selector, element, element_regex, snippet, position, sort FROM " . self::TABLE_SNIPPETS . " WHERE enabled=1 ORDER BY sort, id");
 			while ($snippet = $query->fetch(\PDO::FETCH_OBJ)) {
 				if ($snippet->apply_to_pages_list) {
 					// apply basic validation to the apply to pages list property
@@ -278,6 +281,12 @@ class Snippets extends WireData implements Module, ConfigurableModule {
 						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` CHANGE `apply_to_selector` `apply_to_pages_selector` TEXT",
 						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` CHANGE `apply_to_page_list` `apply_to_pages_list` TEXT",
 						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` ADD `apply_to_users` VARCHAR(128) NOT NULL AFTER `apply_to_pages_list`",
+					];
+					break;
+				case 3:
+					// update #3: add apply_to_users_selector column
+					$sql = [
+						"ALTER TABLE `" . self::TABLE_SNIPPETS . "` ADD `apply_to_users_selector` TEXT AFTER `apply_to_users`",
 					];
 					break;
 				default:
